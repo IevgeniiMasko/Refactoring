@@ -1,19 +1,25 @@
 import { APerformance, Invoice, Play, PlayType, PlaysConfig } from './data';
 
 export function statement(invoice: Invoice, plays: PlaysConfig) {
-  let totalAmount = 0;
   let result = `Statement for ${invoice.customerId}\n`;
 
   for (let perf of invoice.performances) {
     result += `  ${playFor(perf).name}: ${usd(amountFor(perf) / 100)} (${
       perf.audience
     } seats)\n`;
-    totalAmount += amountFor(perf);
   }
 
-  result += `Amount owed is ${usd(totalAmount / 100)}\n`;
+  result += `Amount owed is ${usd(totalAmount() / 100)}\n`;
   result += `You earned ${totalVolumeCredit()} credits\n`;
   return result;
+
+  function totalAmount() {
+    let result = 0;
+    for (let perf of invoice.performances) {
+      result += amountFor(perf);
+    }
+    return result;
+  }
 
   function totalVolumeCredit() {
     let result = 0;
