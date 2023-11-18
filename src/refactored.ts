@@ -8,15 +8,8 @@ export function statement(invoice: Invoice, plays: PlaysConfig) {
 
   for (let perf of invoice.performances) {
     let thisAmount = amountFor(perf);
+    volumeCredits += volumeCreditFor(perf);
 
-    // add volume credits
-    volumeCredits += Math.max(perf.audience - 30, 0);
-    // add extra credit for every ten comedy attendees
-    if (playFor(perf).type === PlayType.comedy) {
-      volumeCredits += Math.floor(perf.audience / 5);
-    }
-
-    // print line for this order
     result += `  ${playFor(perf).name}: ${format(thisAmount / 100)} (${
       perf.audience
     } seats)\n`;
@@ -25,6 +18,14 @@ export function statement(invoice: Invoice, plays: PlaysConfig) {
   result += `Amount owed is ${format(totalAmount / 100)}\n`;
   result += `You earned ${volumeCredits} credits\n`;
   return result;
+
+  function volumeCreditFor(aPerformance: APerformance) {
+    let result = Math.max(aPerformance.audience - 30, 0);
+    if (playFor(aPerformance).type === PlayType.comedy) {
+      result += Math.floor(aPerformance.audience / 5);
+    }
+    return result;
+  }
 
   function playFor(aPerformance: APerformance) {
     return plays[aPerformance.playId];
