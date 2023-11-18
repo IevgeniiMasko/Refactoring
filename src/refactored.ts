@@ -1,10 +1,38 @@
 import { APerformance, Invoice, Play, PlayType, PlaysConfig } from './data';
 
-export function statement(invoice: Invoice, plays: PlaysConfig) {
-  let result = `Statement for ${invoice.customerId}\n`;
+type EnrichedPerformance = APerformance & {
+  play: Play;
+};
 
-  for (let perf of invoice.performances) {
-    result += `  ${playFor(perf).name}: ${usd(amountFor(perf) / 100)} (${
+type StatementData = {
+  customerId: string;
+  performances: EnrichedPerformance[];
+};
+
+export function statement(invoice: Invoice, plays: PlaysConfig) {
+  const data = {} as StatementData;
+  data.customerId = invoice.customerId;
+  data.performances = invoice.performances.map(enrichPerformance);
+  return renderPlainText(data, plays);
+
+  function enrichPerformance(aPerformance: APerformance): EnrichedPerformance {
+    const result = {
+      ...aPerformance,
+      play: playFor(aPerformance),
+    };
+    return result;
+  }
+
+  function playFor(aPerformance: APerformance) {
+    return plays[aPerformance.playId];
+  }
+}
+
+export function renderPlainText(data: StatementData, plays: PlaysConfig) {
+  let result = `Statement for ${data.customerId}\n`;
+
+  for (let perf of data.performances) {
+    result += `  ${perf.play.name}: ${usd(amountFor(perf) / 100)} (${
       perf.audience
     } seats)\n`;
   }
@@ -15,7 +43,7 @@ export function statement(invoice: Invoice, plays: PlaysConfig) {
 
   function totalAmount() {
     let result = 0;
-    for (let perf of invoice.performances) {
+    for (let perf of data.performances) {
       result += amountFor(perf);
     }
     return result;
@@ -23,7 +51,7 @@ export function statement(invoice: Invoice, plays: PlaysConfig) {
 
   function totalVolumeCredit() {
     let result = 0;
-    for (let perf of invoice.performances) {
+    for (let perf of data.performances) {
       result += volumeCreditFor(perf);
     }
     return result;
