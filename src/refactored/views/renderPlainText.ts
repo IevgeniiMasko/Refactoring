@@ -1,8 +1,7 @@
-import { PlaysConfig } from '../../data';
 import { StatementData } from '../createStatementData';
 import { usd } from '../utils';
 
-export function renderPlainText(data: StatementData, plays: PlaysConfig) {
+export function renderPlainText(data: StatementData) {
   let result = `Statement for ${data.customerId}\n`;
 
   for (let perf of data.performances) {
