@@ -17,34 +17,13 @@ export function createStatementData(invoice: Invoice, plays: PlaysConfig) {
   const data = {} as StatementData;
   data.customerId = invoice.customerId;
   data.performances = invoice.performances.map(enrichPerformance);
-  data.totalAmount = totalAmount(data) / 100;
+  data.totalAmount = totalAmount(data);
   data.totalVolumeCredits = totalVolumeCredit(data);
 
   return data;
 
-  function totalVolumeCredit(data: StatementData) {
-    let result = 0;
-    for (let perf of data.performances) {
-      result += volumeCreditFor(perf);
-    }
-    return result;
-  }
-
-  function volumeCreditFor(aPerformance: APerformance) {
-    return new PerfomanceCalculator(aPerformance, playFor(aPerformance))
-      .volumeCredit;
-  }
-
-  function totalAmount(data: StatementData) {
-    let result = 0;
-    for (let perf of data.performances) {
-      result += amountFor(perf);
-    }
-    return result;
-  }
-
   function enrichPerformance(aPerformance: APerformance): EnrichedPerformance {
-    const calculator = new PerfomanceCalculator(
+    const calculator = createPerformanceCalculator(
       aPerformance,
       playFor(aPerformance),
     );
@@ -57,8 +36,12 @@ export function createStatementData(invoice: Invoice, plays: PlaysConfig) {
     return result;
   }
 
-  function amountFor(aPerformance: APerformance) {
-    return new PerfomanceCalculator(aPerformance, playFor(aPerformance)).amount;
+  function totalVolumeCredit(data: StatementData) {
+    return data.performances.reduce((total, p) => total + p.volumeCredits, 0);
+  }
+
+  function totalAmount(data: StatementData) {
+    return data.performances.reduce((total, p) => total + p.amount, 0);
   }
 
   function playFor(aPerformance: APerformance) {
@@ -66,36 +49,49 @@ export function createStatementData(invoice: Invoice, plays: PlaysConfig) {
   }
 }
 
-class PerfomanceCalculator {
+function createPerformanceCalculator(performance: APerformance, play: Play) {
+  switch (play.type) {
+    case PlayType.tragedy:
+      return new TragedyCalculator(performance, play);
+    case PlayType.comedy:
+      return new ComedyCalculator(performance, play);
+    default:
+      throw new Error(`unknown type: ${play.type}`);
+  }
+}
+
+abstract class PerfomanceCalculator {
   constructor(public performance: APerformance, public play: Play) {}
 
-  get amount() {
-    let result = 0;
-    switch (this.play.type) {
-      case PlayType.tragedy:
-        result = 40000;
-        if (this.performance.audience > 30) {
-          result += 1000 * (this.performance.audience - 30);
-        }
-        break;
-      case PlayType.comedy:
-        result = 30000;
-        if (this.performance.audience > 20) {
-          result += 10000 + 500 * (this.performance.audience - 20);
-        }
-        result += 300 * this.performance.audience;
-        break;
-      default:
-        throw new Error(`unknown type: ${this.play.type}`);
-    }
-    return result;
-  }
+  abstract get amount(): number;
 
   get volumeCredit() {
     let result = Math.max(this.performance.audience - 30, 0);
-    if (this.play.type === PlayType.comedy) {
-      result += Math.floor(this.performance.audience / 5);
+    return result;
+  }
+}
+
+class TragedyCalculator extends PerfomanceCalculator {
+  get amount() {
+    let result = 40000;
+    if (this.performance.audience > 30) {
+      result += 1000 * (this.performance.audience - 30);
     }
     return result;
+  }
+}
+
+class ComedyCalculator extends PerfomanceCalculator {
+  get amount() {
+    let result = 30000;
+    if (this.performance.audience > 20) {
+      result += 10000 + 500 * (this.performance.audience - 20);
+    }
+    result += 300 * this.performance.audience;
+    return result;
+  }
+
+  override get volumeCredit() {
+    return super.volumeCredit + Math.floor(this.performance.audience / 5);
   }
 }
