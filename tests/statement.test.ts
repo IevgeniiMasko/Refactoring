@@ -1,4 +1,4 @@
-import { statement } from '../src/refactored';
+import { statement } from '../src/refactored_stage1';
 import { invoices, plays } from '../src/data';
 
 test('statement function should return the expected result', () => {
