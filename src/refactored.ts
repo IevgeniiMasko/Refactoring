@@ -2,7 +2,6 @@ import { APerformance, Invoice, Play, PlayType, PlaysConfig } from './data';
 
 export function statement(invoice: Invoice, plays: PlaysConfig) {
   let totalAmount = 0;
-  let volumeCredits = 0;
   let result = `Statement for ${invoice.customerId}\n`;
 
   for (let perf of invoice.performances) {
@@ -12,13 +11,17 @@ export function statement(invoice: Invoice, plays: PlaysConfig) {
     totalAmount += amountFor(perf);
   }
 
-  for (let perf of invoice.performances) {
-    volumeCredits += volumeCreditFor(perf);
-  }
-
   result += `Amount owed is ${usd(totalAmount / 100)}\n`;
-  result += `You earned ${volumeCredits} credits\n`;
+  result += `You earned ${totalVolumeCredit()} credits\n`;
   return result;
+
+  function totalVolumeCredit() {
+    let result = 0;
+    for (let perf of invoice.performances) {
+      result += volumeCreditFor(perf);
+    }
+    return result;
+  }
 
   function usd(amount: number) {
     return `$${amount}.00`;
