@@ -17,7 +17,7 @@ export function statement(invoice: Invoice, plays: PlaysConfig) {
   data.customerId = invoice.customerId;
   data.performances = invoice.performances.map(enrichPerformance);
   data.totalAmount = totalAmount(data) / 100;
-  data.totalVolume = totalVolumeCredit(data) / 100;
+  data.totalVolume = totalVolumeCredit(data);
 
   return renderPlainText(data, plays);
 
