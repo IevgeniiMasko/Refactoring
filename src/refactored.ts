@@ -2,6 +2,7 @@ import { APerformance, Invoice, Play, PlayType, PlaysConfig } from './data';
 
 type EnrichedPerformance = APerformance & {
   play: Play;
+  amount: number;
 };
 
 type StatementData = {
@@ -19,7 +20,30 @@ export function statement(invoice: Invoice, plays: PlaysConfig) {
     const result = {
       ...aPerformance,
       play: playFor(aPerformance),
+      amount: amountFor(aPerformance) / 100,
     };
+    return result;
+  }
+
+  function amountFor(aPerformance: APerformance) {
+    let result = 0;
+    switch (playFor(aPerformance).type) {
+      case PlayType.tragedy:
+        result = 40000;
+        if (aPerformance.audience > 30) {
+          result += 1000 * (aPerformance.audience - 30);
+        }
+        break;
+      case PlayType.comedy:
+        result = 30000;
+        if (aPerformance.audience > 20) {
+          result += 10000 + 500 * (aPerformance.audience - 20);
+        }
+        result += 300 * aPerformance.audience;
+        break;
+      default:
+        throw new Error(`unknown type: ${playFor(aPerformance).type}`);
+    }
     return result;
   }
 
@@ -32,7 +56,7 @@ export function renderPlainText(data: StatementData, plays: PlaysConfig) {
   let result = `Statement for ${data.customerId}\n`;
 
   for (let perf of data.performances) {
-    result += `  ${perf.play.name}: ${usd(amountFor(perf) / 100)} (${
+    result += `  ${perf.play.name}: ${usd(perf.amount)} (${
       perf.audience
     } seats)\n`;
   }
