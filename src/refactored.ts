@@ -10,7 +10,7 @@ type StatementData = {
   customerId: string;
   performances: EnrichedPerformance[];
   totalAmount: number;
-  totalVolume: number;
+  totalVolumeCredits: number;
 };
 
 export function statement(invoice: Invoice, plays: PlaysConfig) {
@@ -18,7 +18,7 @@ export function statement(invoice: Invoice, plays: PlaysConfig) {
   data.customerId = invoice.customerId;
   data.performances = invoice.performances.map(enrichPerformance);
   data.totalAmount = totalAmount(data) / 100;
-  data.totalVolume = totalVolumeCredit(data);
+  data.totalVolumeCredits = totalVolumeCredit(data);
 
   return renderPlainText(data, plays);
 
@@ -92,6 +92,6 @@ export function renderPlainText(data: StatementData, plays: PlaysConfig) {
   }
 
   result += `Amount owed is ${usd(data.totalAmount)}\n`;
-  result += `You earned ${data.totalVolume} credits\n`;
+  result += `You earned ${data.totalVolumeCredits} credits\n`;
   return result;
 }
