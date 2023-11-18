@@ -1,26 +1,25 @@
-import { APerformance, Invoice, Play, PlayType, PlaysConfig } from './data';
-import { usd } from './utils';
+import { APerformance, Invoice, Play, PlayType, PlaysConfig } from '../data';
 
-type EnrichedPerformance = APerformance & {
+export type EnrichedPerformance = APerformance & {
   play: Play;
   amount: number;
 };
 
-type StatementData = {
+export type StatementData = {
   customerId: string;
   performances: EnrichedPerformance[];
   totalAmount: number;
   totalVolumeCredits: number;
 };
 
-export function statement(invoice: Invoice, plays: PlaysConfig) {
+export function createStatementData(invoice: Invoice, plays: PlaysConfig) {
   const data = {} as StatementData;
   data.customerId = invoice.customerId;
   data.performances = invoice.performances.map(enrichPerformance);
   data.totalAmount = totalAmount(data) / 100;
   data.totalVolumeCredits = totalVolumeCredit(data);
 
-  return renderPlainText(data, plays);
+  return data;
 
   function totalVolumeCredit(data: StatementData) {
     let result = 0;
@@ -80,18 +79,4 @@ export function statement(invoice: Invoice, plays: PlaysConfig) {
   function playFor(aPerformance: APerformance) {
     return plays[aPerformance.playId];
   }
-}
-
-export function renderPlainText(data: StatementData, plays: PlaysConfig) {
-  let result = `Statement for ${data.customerId}\n`;
-
-  for (let perf of data.performances) {
-    result += `  ${perf.play.name}: ${usd(perf.amount)} (${
-      perf.audience
-    } seats)\n`;
-  }
-
-  result += `Amount owed is ${usd(data.totalAmount)}\n`;
-  result += `You earned ${data.totalVolumeCredits} credits\n`;
-  return result;
 }
