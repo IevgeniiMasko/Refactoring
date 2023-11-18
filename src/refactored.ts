@@ -7,13 +7,12 @@ export function statement(invoice: Invoice, plays: PlaysConfig) {
   const format = (amount: number) => `$${amount}.00`;
 
   for (let perf of invoice.performances) {
-    let thisAmount = amountFor(perf);
     volumeCredits += volumeCreditFor(perf);
 
-    result += `  ${playFor(perf).name}: ${format(thisAmount / 100)} (${
+    result += `  ${playFor(perf).name}: ${format(amountFor(perf) / 100)} (${
       perf.audience
     } seats)\n`;
-    totalAmount += thisAmount;
+    totalAmount += amountFor(perf);
   }
   result += `Amount owed is ${format(totalAmount / 100)}\n`;
   result += `You earned ${volumeCredits} credits\n`;
