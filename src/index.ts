@@ -1,4 +1,4 @@
 import { invoices, plays } from './data';
-import { statement } from './original';
+import { statement } from './refactored';
 
 console.log(statement(invoices[0], plays));
